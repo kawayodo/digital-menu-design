@@ -1,0 +1,1527 @@
+/* ============================================================
+   川淀 モバイルメニュー — 見た目
+   紙のメニュー表（白い紙・紅の見出しと罫・価格へのリーダー罫）と、
+   ロゴの麻布・墨・落款から組んだ配色。外部フォント・外部ファイルは使わない。
+   ============================================================ */
+
+:root {
+  /* 色 */
+  --sumi: #231815;       /* 墨：本文・カートバー・店員画面の見出し */
+  --beni: #9c1c1c;       /* 紅：見出し・操作・選択中・落款 */
+  --beni-deep: #7a1414;  /* 紅（押したとき） */
+  --asa: #d6cab9;        /* 麻：暖簾・ヘッダーの布地（ロゴの地の色） */
+  --kami: #ffffff;       /* 紙：読む面 */
+  --kincha: #8a6d3b;     /* 金茶：お持ち帰りの帯・飲み物の提供タイミング */
+  --nezumi: #6b625b;     /* 鼠：補足の文字 */
+
+  --asa-deep: #b8aa95;   /* 麻の縁 */
+  --asa-pale: #f1ece4;   /* 麻を薄めた地（ドリンクの帯・注意書き） */
+  --asa-ink: #544a43;    /* 麻の上の補足の文字 */
+  --line: #e4ddd2;       /* 紙の上の罫 */
+  --edge: #d3c9bb;       /* 操作部品の枠 */
+  --ink-2: #4a403a;      /* 説明文 */
+  --warn-bg: #fff4d6;
+  --warn-line: #e0b84a;
+  --warn-ink: #6e4500;
+
+  /* 麻の織り目：畝に沿った光の節（明るい節と暗い節）＋横の畝＋縦糸。インライン SVG なので外部ファイルは不要。
+     暖簾はロゴの布と同じくらいはっきり、ヘッダーは文字が乗るので控えめ */
+  --weave-noren: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f0' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.045 0.18' numOctaves='3' seed='13' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 5.2 0 0 0 -2.7'/%3E%3C/filter%3E%3Cfilter id='f1' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035 0.16' numOctaves='2' seed='21' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.18 0 0 0 0 0.12 -4.6 0 0 0 2.1'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url%28%23f0%29' opacity='0.55'/%3E%3Crect width='240' height='240' filter='url%28%23f1%29' opacity='0.32'/%3E%3C/svg%3E");
+  --weave-header: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f0' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04 0.16' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 4.6 0 0 0 -2.3'/%3E%3C/filter%3E%3Cfilter id='f1' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.14' numOctaves='2' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.18 0 0 0 0 0.12 -4.2 0 0 0 1.9'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url%28%23f0%29' opacity='0.34'/%3E%3Crect width='240' height='240' filter='url%28%23f1%29' opacity='0.2'/%3E%3C/svg%3E");
+  --ribs-noren: repeating-linear-gradient(180deg, rgba(80, 60, 40, .10) 0, rgba(80, 60, 40, 0) 1.75px, rgba(255, 255, 255, .13) 3.5px, rgba(255, 255, 255, 0) 5.25px, rgba(80, 60, 40, .10) 7px);
+  --ribs-header: repeating-linear-gradient(180deg, rgba(80, 60, 40, .06) 0, rgba(80, 60, 40, 0) 1.75px, rgba(255, 255, 255, .09) 3.5px, rgba(255, 255, 255, 0) 5.25px, rgba(80, 60, 40, .06) 7px);
+  --warp: repeating-linear-gradient(90deg, rgba(60, 40, 20, .03) 0 1px, rgba(60, 40, 20, 0) 1px 3px);
+  /* 暖簾の布のたわみ：外側の端が沈み、合わせ目側は明るい */
+  --drape-l: linear-gradient(90deg, rgba(35, 24, 21, .11), rgba(35, 24, 21, 0) 24%, rgba(255, 255, 255, .05) 62%, rgba(35, 24, 21, .02));
+  --drape-r: linear-gradient(270deg, rgba(35, 24, 21, .11), rgba(35, 24, 21, 0) 24%, rgba(255, 255, 255, .05) 62%, rgba(35, 24, 21, .02));
+
+  /* 書体：筆文字のロゴと対比させて、文字はすべてゴシック。欧文は Avenir Next、和文はヒラギノ角ゴ。
+     見出し・料理名は太字（--display）、価格は値札のように詰めた Avenir Next Condensed（--num） */
+  --sans-jp: "Avenir Next", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic UI", "Yu Gothic", Meiryo, Roboto, "Segoe UI", sans-serif;
+  --sans: var(--sans-jp);
+  --display: var(--sans-jp);
+  --num: "Avenir Next Condensed", "Avenir Next", "sans-serif-condensed", "Roboto Condensed", Roboto, "Segoe UI", sans-serif;
+
+  /* 寸法 */
+  --page-w: 640px;
+  --gutter: 16px;
+  --bar-h: 74px;  /* 下の固定バー（カートバー・店員に見せる）の高さ */
+  /* ヘッダーとカテゴリナビの実高さ（JavaScript で測って上書きする） */
+  --header-h: 0px;
+  --nav-h: 0px;
+}
+
+/* 中国語・韓国語はその言語のゴシックにする。
+   混植で字形がばらつくのを避けるため、要素の言語（lang）ごとに書体を切り替える */
+:lang(ja) { --sans: var(--sans-jp); --display: var(--sans-jp); }
+:lang(zh-Hans) {
+  --sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  --display: var(--sans);
+}
+:lang(zh-Hant) {
+  --sans: "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "Source Han Sans TC", "Microsoft JhengHei", sans-serif;
+  --display: var(--sans);
+}
+:lang(ko) {
+  --sans: "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", "Source Han Sans KR", "Malgun Gothic", sans-serif;
+  --display: var(--sans);
+}
+[lang] { font-family: var(--sans); }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--kami);
+  color: var(--sumi);
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* hidden 属性は、display を指定したクラスより必ず優先する */
+[hidden] { display: none !important; }
+
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; animation: screen-in .16s ease-out; }
+
+@keyframes screen-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* ＋ − の連打で iOS が拡大しないように */
+}
+
+:focus-visible { outline: 2px solid var(--beni); outline-offset: 2px; }
+
+/* 見た目には出さず、読み上げとコピーでは読める文字 */
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- 共通のボタン ---------- */
+/* 押せるものは一目でボタンと分かる形にする：塗りのボタンは下に濃い縁（押すと沈む）、
+   それ以外は枠と地色を付ける。文字だけのボタンは作らない */
+.btn {
+  border: none;
+  border-radius: 5px;
+  min-height: 52px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: .02em;
+}
+
+.btn-primary {
+  background: var(--beni);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--beni-deep);
+}
+
+.btn-primary:active {
+  background: var(--beni-deep);
+  box-shadow: 0 1px 0 var(--beni-deep);
+  transform: translateY(2px);
+}
+
+.btn-primary:disabled {
+  background: #ebe5dc;
+  color: #8d847b;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-primary:focus-visible { outline-color: var(--sumi); }
+
+/* ============================================================
+   入口：暖簾
+   全面が麻の暖簾。筆文字は左右の布に分けて描き、中央の切れ目が「川」と「淀」の間を通る。
+   選ぶと（.parting）入口を重ねたまま左右の布が払われ、下のメニューが現れる
+   ============================================================ */
+#entry-screen {
+  --mark-w: min(84vw, 400px);
+  --mark-h: calc(var(--mark-w) * .4238); /* logo-ink.webp の縦横比 331 / 781 */
+  --mark-top: clamp(40px, 14vh, 140px);
+  position: relative;
+  overflow: hidden;
+  background: var(--asa);
+}
+
+#entry-screen.active { display: block; }
+
+.noren {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.noren-rod {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(#6d5241, #3b2b21 60%, #2a1d16);
+  box-shadow: 0 2px 5px rgba(35, 24, 21, .35);
+}
+
+.noren-panel {
+  position: absolute;
+  top: 4px;
+  bottom: 0;
+  width: 50%;
+  background-color: var(--asa);
+  background-repeat: no-repeat, no-repeat, repeat, repeat, repeat;
+  background-size: var(--mark-w) auto, 100% 100%, 240px 240px, auto, auto;
+}
+
+/* 筆文字の中心（川と淀の間）を、左の布の右端・右の布の左端に合わせる */
+.noren-left {
+  left: 0;
+  transform-origin: 0 0;
+  background-image: url("assets/logo-ink.webp"), var(--drape-l), var(--weave-noren), var(--ribs-noren), var(--warp);
+  background-position: right calc(var(--mark-w) * -.5) top var(--mark-top), 0 0, 0 0, 0 0, 0 0;
+}
+
+.noren-right {
+  right: 0;
+  transform-origin: 100% 0;
+  background-image: url("assets/logo-ink.webp"), var(--drape-r), var(--weave-noren), var(--ribs-noren), var(--warp);
+  background-position: left calc(var(--mark-w) * -.5) top var(--mark-top), 0 0, -120px 40px, 0 3px, 0 0;
+}
+
+/* 布の合わせ目。筆文字のあたりだけ見せ、下の操作部分では消える */
+.noren-left::after,
+.noren-right::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: calc(var(--mark-top) + var(--mark-h) + 36px);
+  -webkit-mask-image: linear-gradient(#000 55%, transparent);
+  mask-image: linear-gradient(#000 55%, transparent);
+}
+
+.noren-left::after {
+  right: 0;
+  width: 1px;
+  background: rgba(35, 24, 21, .3);
+}
+
+.noren-right::after {
+  left: 0;
+  width: 7px;
+  background: linear-gradient(90deg, rgba(35, 24, 21, .12), rgba(35, 24, 21, 0));
+}
+
+.gate-card {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: calc(var(--mark-top) + var(--mark-h) + 14px) 24px calc(28px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  transition: opacity .16s ease-out;
+}
+
+.gate-card h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--sumi);
+}
+
+.gate-subtitle {
+  margin: 4px 0 32px;
+  font-size: 13px;
+  color: var(--asa-ink);
+}
+
+/* 言語・質問・店内／お持ち帰りは、読みやすい紙の面にまとめて画面の下側に置く */
+.gate-choices {
+  margin-top: auto; /* 上の余りをすべてここで取る */
+  padding: 18px 16px 16px;
+  background: var(--kami);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(35, 24, 21, .2), 0 0 0 1px rgba(35, 24, 21, .08);
+}
+
+.entry-question {
+  margin: 0 0 14px;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.service-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.service-buttons .btn {
+  width: 100%;
+  min-height: 56px;
+  font-family: var(--display);
+  font-size: 18px;
+}
+
+.gate-card .tax-note { margin-top: 16px; }
+
+/* 暖簾くぐり：操作部分がすっと消え、左右の布が竿を支点に外へ払われる */
+#entry-screen.parting {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  background: transparent;
+}
+
+#entry-screen.parting .gate-card { opacity: 0; }
+#entry-screen.parting .noren-left { animation: noren-left-out .78s cubic-bezier(.7, 0, .25, 1) .05s forwards; }
+#entry-screen.parting .noren-right { animation: noren-right-out .78s cubic-bezier(.7, 0, .25, 1) .05s forwards; }
+#entry-screen.parting .noren-rod { animation: fade-out .25s ease-in .6s forwards; }
+
+@keyframes noren-left-out {
+  to { transform: translateX(-102%) rotate(6deg); }
+}
+
+@keyframes noren-right-out {
+  to { transform: translateX(102%) rotate(-6deg); }
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+/* ---------- 言語の切り替え ---------- */
+/* 言語の切り替え：枠付きのボタン。横スクロールで隠さず、入り切らなければ折り返して全部見せる */
+.lang-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 4px var(--gutter) 10px;
+}
+
+.lang-btn {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid rgba(35, 24, 21, .28);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 1px 0 rgba(35, 24, 21, .14);
+  color: var(--sumi);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.lang-btn:active { transform: translateY(1px); box-shadow: none; }
+
+.lang-btn.active {
+  border-color: var(--beni);
+  background: var(--beni);
+  box-shadow: none;
+  color: #fff;
+}
+
+.lang-btn.active:focus-visible { outline-color: var(--sumi); }
+
+.gate-card .lang-bar {
+  justify-content: center;
+  margin: 0 0 18px;
+  padding: 0;
+}
+
+/* ---------- ヘッダー（麻） ---------- */
+.site-header,
+.sub-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--asa);
+  background-image: var(--weave-header), var(--ribs-header), var(--warp);
+  background-size: 240px 240px, auto, auto;
+  border-bottom: 1px solid var(--asa-deep);
+}
+
+.site-header { padding: 8px 0 0; }
+
+.site-header-top {
+  display: flex;
+  flex-wrap: wrap; /* 入り切らない幅では、切り替えを次の行に回す（重ねない） */
+  align-items: center;
+  gap: 6px 10px;
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.site-logo {
+  display: block;
+  width: 64px;
+  height: auto;
+}
+
+.header-text h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  line-height: 1.2;
+}
+
+.header-text p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--asa-ink);
+}
+
+/* 店内／お持ち帰りの切り替え */
+.service-switch {
+  margin-left: auto;
+  display: inline-flex;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--beni);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .5);
+}
+
+.service-switch button {
+  min-height: 34px;
+  padding: 6px 11px;
+  border: none;
+  background: none;
+  color: var(--beni);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.service-switch button.active {
+  background: var(--beni);
+  color: #fff;
+}
+
+.service-switch button:focus-visible { outline-offset: -4px; outline-color: var(--sumi); }
+
+/* ---------- カテゴリナビ（枠付きのボタン。表示中のカテゴリは紅の塗り） ---------- */
+.category-nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 7px var(--gutter);
+  background: var(--kami);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: var(--header-h);
+  z-index: 19;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.category-nav::-webkit-scrollbar { display: none; }
+
+.category-nav button {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 7px 13px;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  background: var(--kami);
+  box-shadow: 0 1px 0 rgba(35, 24, 21, .1);
+  color: var(--sumi);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.category-nav button:active { transform: translateY(1px); box-shadow: none; }
+
+.category-nav button.active {
+  border-color: var(--beni);
+  background: var(--beni);
+  box-shadow: none;
+  color: #fff;
+}
+
+.category-nav button.active:focus-visible { outline-color: var(--sumi); }
+
+/* 料理とドリンクの間の区切り */
+.category-nav button[data-kind="food"] + button[data-kind="drink"] { margin-left: 13px; }
+
+.category-nav button[data-kind="food"] + button[data-kind="drink"]::before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--edge);
+}
+
+/* ============================================================
+   メニュー：紙のメニュー表の組み方
+   料理ごとに左の紅い縦罫と名前の下の横罫。価格まではリーダー罫
+   ============================================================ */
+main#menu-list {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 0 var(--gutter) 8px;
+}
+
+.category-section {
+  scroll-margin-top: calc(var(--header-h) + var(--nav-h) + 8px);
+  margin-top: 36px;
+}
+
+.category-bar {
+  padding-bottom: 9px;
+  border-bottom: 2px solid var(--beni);
+  font-family: var(--display);
+  font-size: clamp(25px, 7vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--beni);
+}
+
+.food-card { margin-top: 26px; }
+.food-card + .food-card { margin-top: 38px; }
+
+/* 写真は画面の幅いっぱい。写真がない商品は要素ごと出さない（空の箱を残さない） */
+.food-image {
+  display: block;
+  width: calc(100% + 2 * var(--gutter));
+  max-width: none;
+  margin: 0 calc(-1 * var(--gutter)) 16px;
+  aspect-ratio: 36 / 25; /* 元写真 1440×1000 の比率 */
+  object-fit: cover;
+  background: var(--asa-pale);
+}
+
+/* 縦罫は写真の下の文字部分に通す。子要素の間を margin で空けると罫が切れるので padding で空ける */
+.food-card > :not(.food-image) {
+  margin: 0;
+  padding-left: 13px;
+  border-left: 2px solid var(--beni);
+}
+
+.food-name {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--beni);
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.name-main { display: block; }
+
+.name-gloss {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.food-desc {
+  padding-top: 11px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+/* 紙のメニューと同じく ● を付けた注記。空欄にせず必ず出す */
+.food-allergy {
+  padding-top: 9px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.food-allergy::before {
+  content: "●";
+  display: inline-block;
+  margin-right: .4em;
+  font-size: .72em;
+  vertical-align: .12em;
+}
+
+.food-included {
+  padding-top: 5px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.info-label { font-weight: 700; color: var(--nezumi); }
+
+/* サイズごとの行（1行 = 1 variant） */
+.variant-list { padding-top: 8px; }
+
+.variant-row {
+  display: flex;
+  align-items: baseline;
+  align-items: last baseline; /* 非対応の端末では 1 行目で揃う */
+  gap: 10px;
+  padding: 9px 0;
+}
+
+/* 「カートに 2」が出ている行は、その分だけ下を空ける */
+.variant-row:has(.in-cart:not([hidden])) { padding-bottom: 24px; }
+
+/* サイズ名から価格までリーダー罫でつなぐ */
+.variant-size {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  align-items: last baseline;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.variant-size::after {
+  content: "";
+  flex: 1 0 14px;
+  margin: 0 0 0 8px;
+  border-bottom: 2px dotted rgba(35, 24, 21, .32);
+  position: relative;
+  top: -3px;
+}
+
+.variant-price {
+  font-family: var(--num);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+/* サイズ名がない行も、価格は操作ボタンのすぐ左（サイズのある行と同じ列）に置く */
+.variant-row.no-size .variant-price { flex: 1 1 auto; text-align: right; }
+
+.variant-control {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* 「カートに 2」。ボタンの下に置き、行の揃え（ボタンの文字の位置）には関わらせない */
+.in-cart {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--beni);
+  white-space: nowrap;
+}
+
+/* :has() が使えない古い端末では、ボタンの下に普通に並べる（重ならないように） */
+@supports not selector(:has(*)) {
+  .in-cart { position: static; margin-top: 3px; }
+}
+
+.row-btn {
+  min-width: 72px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 5px;
+  background: var(--beni);
+  box-shadow: 0 3px 0 var(--beni-deep);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.row-btn:active {
+  background: var(--beni-deep);
+  box-shadow: 0 1px 0 var(--beni-deep);
+  transform: translateY(2px);
+}
+.row-btn:focus-visible { outline-color: var(--sumi); }
+
+/* ＋ − は地色の付いたボタン、真ん中の数は白 */
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid #c9bfb1;
+  border-radius: 5px;
+  background: var(--kami);
+  box-shadow: 0 1px 0 rgba(35, 24, 21, .1);
+  overflow: hidden;
+}
+
+.stepper button {
+  width: 42px;
+  height: 40px;
+  border: none;
+  background: var(--asa-pale);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stepper button:active { background: #e3dacd; }
+
+.stepper-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2em;
+  border-left: 1px solid #c9bfb1;
+  border-right: 1px solid #c9bfb1;
+  font-family: var(--num);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 数量限定バッジ ---------- */
+.label-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px 2px;
+  border: 1px solid var(--beni);
+  border-radius: 2px;
+  color: var(--beni);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  vertical-align: 3px;
+  white-space: nowrap;
+}
+
+/* ---------- オーダーストップの警告帯 ---------- */
+.stop-warning {
+  margin-top: 12px;
+  padding: 9px 12px;
+  background: var(--warn-bg);
+  border-left: 4px solid var(--warn-line);
+  color: var(--warn-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* ---------- ドリンク：紙のメニューの飲み物ページのように、淡い帯の見出しと詰めた行 ---------- */
+.category-section[data-kind="food"] + .category-section[data-kind="drink"] { margin-top: 64px; }
+
+.category-section[data-kind="drink"] .category-bar {
+  padding: 7px 12px;
+  border-bottom: none;
+  background: var(--asa-pale);
+  font-size: 16px;
+  letter-spacing: .06em;
+  text-align: center;
+}
+
+.category-section[data-kind="drink"] .food-card {
+  margin-top: 0;
+  padding: 14px 0 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.category-section[data-kind="drink"] .food-card > :not(.food-image) {
+  padding-left: 0;
+  border-left: none;
+}
+
+.category-section[data-kind="drink"] .food-name {
+  padding-bottom: 0;
+  border-bottom: none;
+  font-size: 17px;
+}
+
+.category-section[data-kind="drink"] .name-gloss { font-size: 13px; }
+.category-section[data-kind="drink"] .food-desc { padding-top: 5px; font-size: 13px; line-height: 1.6; }
+.category-section[data-kind="drink"] .food-allergy { padding-top: 5px; }
+.category-section[data-kind="drink"] .variant-list { padding-top: 2px; }
+
+/* ---------- 注意書き・税込表示 ---------- */
+/* 下端はカートバーに隠れない分だけ空ける */
+.menu-footer {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 44px var(--gutter) calc(var(--bar-h) + 40px + env(safe-area-inset-bottom));
+}
+
+.allergy-disclaimer {
+  margin: 0 0 14px;
+  padding: 13px 15px;
+  background: var(--asa-pale);
+  border-radius: 3px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.tax-note {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--nezumi);
+}
+
+/* ---------- カートバー（墨のバー＋朱の落款） ---------- */
+.cart-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  padding: 9px var(--gutter) calc(9px + env(safe-area-inset-bottom));
+  background: var(--sumi);
+}
+
+#view-order-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: calc(var(--page-w) - 2 * var(--gutter));
+  min-height: 52px;
+  margin: 0 auto;
+  padding: 8px 16px 8px 10px;
+  border: none;
+  border-radius: 5px;
+  background: var(--beni);
+  box-shadow: 0 3px 0 #5e0f0f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+}
+
+#view-order-btn:active {
+  background: var(--beni-deep);
+  box-shadow: 0 1px 0 #5e0f0f;
+  transform: translateY(2px);
+}
+
+#view-order-btn:focus-visible { outline-color: #fff; outline-offset: 3px; }
+
+.cart-bar-label { flex: 1 1 auto; }
+
+/* 数（落款）。読み上げは「注文を確認 2」の順のまま、見た目だけ先頭に置く */
+.cart-seal {
+  order: -1;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px rgba(156, 28, 28, .6);
+  color: var(--beni);
+  font-family: var(--num);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  transform: rotate(-3deg);
+}
+
+#view-order-btn.is-empty .cart-seal {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .55);
+  color: #fff;
+}
+
+/* 数が増えたときに判を押す */
+.cart-seal.stamped { animation: stamp .42s cubic-bezier(.3, 1.3, .5, 1) both; }
+
+@keyframes stamp {
+  0% { transform: scale(1.7) rotate(-14deg); opacity: 0; }
+  60% { transform: scale(.9) rotate(-2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+}
+
+.cart-bar-total {
+  font-family: var(--num);
+  font-size: 19px;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.cart-bar-total:empty { display: none; }
+
+/* ---------- 選択肢のボタン（ラジオ） ---------- */
+.style-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.style-option {
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 1px solid #c9bfb1;
+  border-radius: 5px;
+  background: var(--kami);
+  box-shadow: 0 1px 0 rgba(35, 24, 21, .12);
+  color: var(--sumi);
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: left; /* 長い選択肢（コースのメイン変更など）が2行になっても読みやすく */
+}
+
+.style-option:active { background: var(--asa-pale); }
+
+.style-option.selected {
+  border-color: var(--beni);
+  background: var(--beni);
+  box-shadow: 0 2px 0 var(--beni-deep);
+  color: #fff;
+  font-weight: 700;
+}
+
+.style-option.selected:focus-visible { outline-color: var(--sumi); }
+
+/* ---------- オプションのボトムシート ---------- */
+body.sheet-open { overflow: hidden; }
+
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(35, 24, 21, .5);
+  animation: fade-in .2s ease-out;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  max-height: 88dvh;
+  background: var(--kami);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  animation: sheet-up .3s cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+/* どの商品・サイズ・価格についての選択かを常に見せる */
+.sheet-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sheet-header > div {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--beni);
+}
+
+.sheet-title {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.sheet-title .name-gloss { font-size: 13.5px; }
+
+.sheet-subtitle {
+  margin-top: 7px;
+  font-size: 13.5px;
+  color: var(--nezumi);
+}
+
+.sheet-subtitle .price {
+  font-family: var(--num);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--sumi);
+}
+
+.sheet-close {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  margin-left: auto;
+  border: 1px solid var(--edge);
+  border-radius: 50%;
+  background: var(--asa-pale);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.sheet-close:active { background: #e3dacd; }
+
+.sheet-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px var(--gutter) 14px;
+}
+
+.sheet-group { padding: 16px 0; }
+.sheet-group + .sheet-group { border-top: 1px solid var(--line); }
+
+.sheet-group-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sheet-required {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--beni);
+}
+
+/* コースのメイン変更で現れるオプション：どの選択に付くものか分かるよう字下げする */
+.sheet-group.nested {
+  margin-left: 4px;
+  padding-left: 14px;
+  border-left: 2px solid var(--asa);
+}
+
+.sheet-group + .sheet-group.nested { border-top: none; padding-top: 4px; }
+
+.sheet-footer {
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--kami);
+}
+
+.sheet-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* シートの数量（ドリンクは「本数」「徳利数」の見出しが付く） */
+.sheet-qty { display: flex; flex-direction: column; gap: 4px; }
+.sheet-qty-label { font-size: 12px; font-weight: 700; color: var(--nezumi); }
+
+.sheet-total {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+}
+
+#sheet-total {
+  margin-left: 4px;
+  font-family: var(--num);
+  font-size: 24px;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.sheet-add { width: 100%; }
+
+/* ---------- 「追加しました」 ---------- */
+.toast {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--bar-h) + 10px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 12px 12px 12px 14px;
+  background: var(--kami);
+  border-left: 3px solid var(--beni);
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(35, 24, 21, .22), 0 0 0 1px rgba(35, 24, 21, .06);
+  animation: toast-in .24s cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes toast-in {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.toast-text {
+  flex: 1 1 auto;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.toast-again {
+  flex: 0 0 auto;
+  max-width: 46%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--beni);
+  border-radius: 5px;
+  background: #fbf0ee;
+  box-shadow: 0 2px 0 rgba(156, 28, 28, .25);
+  color: var(--beni);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.toast-again:active { background: #f5e1de; box-shadow: none; transform: translateY(1px); }
+
+/* ---------- 注文確認・店員画面のヘッダー ---------- */
+.sub-header { padding: 4px 0 0; }
+
+.sub-header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: var(--page-w);
+  min-height: 50px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.sub-header h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.back-btn {
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid rgba(35, 24, 21, .3);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 1px 0 rgba(35, 24, 21, .14);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.back-btn:active { transform: translateY(1px); box-shadow: none; }
+
+/* ---------- 注文確認 ---------- */
+#order-list {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 24px var(--gutter) 4px;
+}
+
+.empty-note {
+  margin: 56px 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--nezumi);
+}
+
+/* 店内と持ち帰りは色の違う帯＋文字で分け、枠の間を大きく空ける。
+   帯の下端には暖簾の切れ目を入れて、入口の暖簾と揃える */
+.service-frame { margin-bottom: 40px; }
+
+.service-band {
+  position: relative;
+  padding: 10px 12px 14px;
+  border-radius: 3px 3px 0 0;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.service-band::before,
+.service-band::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 10px;
+  margin-left: -1px;
+  background: var(--kami);
+}
+
+.service-band::before { left: 33.333%; }
+.service-band::after { left: 66.667%; }
+
+.service-band.dinein { background: var(--beni); }
+.service-band.takeout { background: var(--kincha); }
+
+.service-frame-body {
+  padding: 0 14px;
+  background: var(--kami);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+}
+
+.order-item { padding: 16px 0; }
+.order-item + .order-item { border-top: 1px solid var(--line); }
+
+.order-name {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.order-name .name-gloss { font-size: 13px; margin-top: 2px; }
+
+.order-size {
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.order-options {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--nezumi);
+}
+
+.order-item-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+}
+
+.qty-control .qty-minus,
+.qty-control .qty-plus {
+  width: 42px;
+  height: 40px;
+  border: 1px solid #c9bfb1;
+  background: var(--asa-pale);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.qty-control .qty-minus { border-radius: 5px 0 0 5px; }
+.qty-control .qty-plus { border-radius: 0 5px 5px 0; }
+.qty-control .qty-minus:active,
+.qty-control .qty-plus:active { background: #e3dacd; }
+
+.qty-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2em;
+  height: 40px;
+  border-top: 1px solid #c9bfb1;
+  border-bottom: 1px solid #c9bfb1;
+  font-family: var(--num);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.qty-control .remove-btn {
+  width: 42px;
+  height: 40px;
+  margin-left: 10px;
+  border: 1px solid rgba(156, 28, 28, .45);
+  border-radius: 5px;
+  background: #fbf0ee;
+  color: var(--beni);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.qty-control .remove-btn:active { background: #f5e1de; }
+
+.order-price { text-align: right; }
+
+.order-unit {
+  display: block;
+  font-size: 12px;
+  color: var(--nezumi);
+  font-variant-numeric: tabular-nums;
+}
+
+.order-subtotal {
+  font-family: var(--num);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.frame-subtotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid var(--sumi);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---------- ドリンクを持ってくるタイミング（注文確認） ---------- */
+.timing-block {
+  margin: -16px 0 28px;
+  padding: 14px;
+  background: var(--kami);
+  border: 2px solid var(--kincha);
+  border-radius: 4px;
+}
+
+.timing-heading {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.timing-required {
+  margin-top: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--beni);
+}
+
+.order-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 4px 0 8px;
+  padding: 14px 2px 12px;
+  border-top: 2px solid var(--sumi);
+  border-bottom: 1px solid var(--sumi);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-total-price {
+  font-family: var(--num);
+  font-size: 30px;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--beni);
+}
+
+/* 下端は固定の「店員に見せる」ボタンに隠れない分だけ空ける */
+.order-notes {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 16px var(--gutter) calc(var(--bar-h) + 48px + env(safe-area-inset-bottom));
+}
+
+.order-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+  background: var(--sumi);
+}
+
+#show-staff-btn {
+  display: block;
+  width: 100%;
+  max-width: calc(var(--page-w) - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+.order-actions .btn-primary:disabled {
+  background: #463a34;
+  color: rgba(255, 255, 255, .5);
+}
+
+.order-actions .btn-primary:focus-visible { outline-color: #fff; }
+
+/* ---------- 店員画面（常に日本語・価格なし）。墨のヘッダーで客向けの画面と見分ける ---------- */
+.staff-header {
+  background: var(--sumi);
+  border-bottom: none;
+  color: #fff;
+}
+
+.staff-header .sub-header-top { padding-bottom: 6px; }
+
+.staff-header .back-btn {
+  border-color: rgba(255, 255, 255, .5);
+  background: rgba(255, 255, 255, .1);
+  box-shadow: none;
+}
+.staff-header h2 { font-family: var(--sans); font-size: 18px; }
+.staff-header :focus-visible { outline-color: #fff; }
+
+#staff-list {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 20px var(--gutter) calc(40px + env(safe-area-inset-bottom));
+}
+
+.staff-item { padding: 16px 0; }
+.staff-item + .staff-item { border-top: 1px dashed var(--edge); }
+
+.staff-name {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: .02em;
+}
+
+/* 略号は紙の伝票に書き写しやすいよう、1つずつ少し離して並べる */
+.staff-options {
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.staff-abbr { display: inline-block; margin-right: .7em; }
+.staff-item > .staff-options { margin-top: 6px; }
+
+/* 料理ごとの行：料理名（小さく灰色）の列を揃える */
+.staff-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 5px 16px;
+  align-items: baseline;
+  margin-top: 8px;
+  padding-left: 8px;
+}
+
+.staff-row-label { font-size: 13px; color: #857b72; }
+
+.staff-drinks-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 4px -14px 0;
+  padding: 10px 14px;
+  background: var(--asa-pale);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 提供タイミングは落款と同じ二重枠の紅い札 */
+.staff-timing {
+  padding: 5px 11px;
+  border-radius: 3px;
+  background: var(--beni);
+  box-shadow: inset 0 0 0 2px var(--beni), inset 0 0 0 3px rgba(255, 255, 255, .5);
+  color: #fff;
+  font-size: 17px;
+}
+
+.staff-note {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--nezumi);
+}
+
+/* ---------- 狭い画面・背の低い画面 ---------- */
+@media (max-width: 374px) {
+  :root { --gutter: 14px; }
+  .site-header-top { column-gap: 8px; }
+  .site-logo { width: 50px; }
+  .header-text h1 { font-size: 13px; letter-spacing: .08em; }
+  .header-text p { display: none; }
+  .service-switch button { padding: 6px 8px; font-size: 12.5px; }
+}
+
+@media (max-height: 640px) {
+  #entry-screen { --mark-w: min(60vw, 300px); --mark-top: 26px; }
+  .gate-subtitle { margin-bottom: 16px; }
+  .gate-choices { padding: 14px 12px 12px; }
+  .gate-card .lang-bar { margin-bottom: 12px; }
+  .entry-question { margin-bottom: 10px; font-size: 17px; }
+  .service-buttons .btn { min-height: 48px; }
+  .gate-card .tax-note { margin-top: 10px; }
+}
+
+/* ---------- 動きを減らす設定 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

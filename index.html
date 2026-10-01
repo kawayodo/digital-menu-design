@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#d6cab9">
+<meta name="color-scheme" content="light">
+<title>Kawayodo Mobile Menu / 川淀 モバイルメニュー</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= Entry: dine in / takeout ================= -->
+<div id="entry-screen" class="screen">
+  <!-- 暖簾（飾り）。筆文字は CSS で左右の布に分けて描き、店内／お持ち帰りを選ぶと左右に分かれる -->
+  <div class="noren" aria-hidden="true">
+    <div class="noren-rod"></div>
+    <div class="noren-panel noren-left"></div>
+    <div class="noren-panel noren-right"></div>
+  </div>
+  <div class="gate-card">
+    <h1><span class="vh">川淀 </span>KAWAYODO</h1>
+    <p class="gate-subtitle" id="entry-subtitle"></p>
+    <div class="gate-choices">
+      <div class="lang-bar" id="lang-bar-entry"></div>
+      <p class="entry-question" id="entry-question"></p>
+      <div class="service-buttons">
+        <button type="button" class="btn btn-primary" id="entry-dinein"></button>
+        <button type="button" class="btn btn-primary" id="entry-takeout"></button>
+      </div>
+      <p class="tax-note" id="entry-tax-note"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Menu screen ================= -->
+<div id="menu-screen" class="screen">
+  <header class="site-header" id="site-header">
+    <div class="site-header-top">
+      <img src="assets/logo-ink.webp" class="site-logo" alt="川淀" width="781" height="331">
+      <div class="header-text">
+        <h1>KAWAYODO</h1>
+        <p id="header-subtitle"></p>
+      </div>
+      <div class="service-switch" id="service-switch"></div>
+    </div>
+    <div class="lang-bar" id="lang-bar-menu"></div>
+  </header>
+  <nav class="category-nav" id="category-nav"></nav>
+  <main id="menu-list"></main>
+  <footer class="menu-footer">
+    <p class="allergy-disclaimer" id="menu-disclaimer"></p>
+    <p class="tax-note" id="menu-tax-note"></p>
+  </footer>
+  <div class="cart-bar">
+    <button type="button" id="view-order-btn">
+      <span class="cart-bar-label" id="view-order-label"></span>
+      <span class="cart-seal" id="cart-count">0</span>
+      <span class="cart-bar-total" id="cart-total"></span>
+    </button>
+  </div>
+</div>
+
+<!-- ================= Order (customer) screen ================= -->
+<div id="order-screen" class="screen">
+  <header class="sub-header">
+    <div class="sub-header-top">
+      <button type="button" class="back-btn" id="order-back-btn"></button>
+      <h2 id="order-heading"></h2>
+    </div>
+    <div class="lang-bar" id="lang-bar-order"></div>
+  </header>
+  <div id="order-list"></div>
+  <div class="order-notes">
+    <p class="allergy-disclaimer" id="order-disclaimer"></p>
+  </div>
+  <div class="order-actions">
+    <button type="button" id="show-staff-btn" class="btn btn-primary"></button>
+  </div>
+</div>
+
+<!-- ================= Staff screen (always Japanese, no prices) ================= -->
+<div id="staff-screen" class="screen">
+  <header class="sub-header staff-header">
+    <div class="sub-header-top">
+      <button type="button" class="back-btn" id="staff-back-btn"></button>
+      <h2 id="staff-heading" lang="ja"></h2>
+    </div>
+  </header>
+  <div id="staff-list" lang="ja"></div>
+</div>
+
+<!-- ================= Option bottom sheet ================= -->
+<div id="sheet-overlay" class="sheet-overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-header">
+      <div>
+        <div class="sheet-title" id="sheet-title"></div>
+        <div class="sheet-subtitle" id="sheet-subtitle"></div>
+        <div class="stop-warning" id="sheet-stop-warning" hidden></div>
+      </div>
+      <button type="button" class="sheet-close" id="sheet-close">✕</button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+    <div class="sheet-footer">
+      <div class="sheet-summary">
+        <div class="sheet-qty">
+        <span class="sheet-qty-label" id="sheet-qty-label"></span>
+        <div class="stepper">
+          <button type="button" id="sheet-qty-minus" aria-label="−">−</button>
+          <span class="stepper-value" id="sheet-qty">1</span>
+          <button type="button" id="sheet-qty-plus" aria-label="＋">＋</button>
+        </div>
+        </div>
+        <div class="sheet-total"><span id="sheet-total-label"></span> <span id="sheet-total"></span></div>
+      </div>
+      <button type="button" class="btn btn-primary sheet-add" id="sheet-add-btn"></button>
+    </div>
+  </div>
+</div>
+
+<!-- 追加後の短い通知と「同じ内容でもう1つ」 -->
+<div id="toast" class="toast" role="status" hidden>
+  <span class="toast-text" id="toast-text"></span>
+  <button type="button" class="toast-again" id="toast-again"></button>
+</div>
+
+<!-- 商品データ・オプション定義・翻訳辞書（xlsx から生成。ここだけ差し替えられるように分離） -->
+<script src="menu-data.js"></script>
+<script>
+/* ============================================================
+   State
+   ============================================================ */
+/* 保存（仕様書 3-1）
+   - iPhone の Safari が再読み込みしたときや、QR を読み直して新しいタブで開いたときも消えないよう localStorage に保存
+   - 保存時刻を一緒に保存し、3時間を過ぎたものは読み込み時に捨てる（次の来店時に前回の分が出ないように）
+   - 他のページ（ドリンク版など）と保存領域を共有するので、キーは kawayodo_food_ で始める */
+const STORAGE_KEYS = {
+  cart: "kawayodo_food_cart", lang: "kawayodo_food_lang", service: "kawayodo_food_service", timing: "kawayodo_food_timing"
+};
+const STORAGE_TTL_MS = 3 * 60 * 60 * 1000;
+const SERVICES = ["dinein", "takeout"];
+
+// 読み書きは必ず try/catch で囲む。プライベートブラウズ等で失敗しても画面は普段どおり動かす（保存されないだけ）
+function loadStored(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return null;
+    const record = JSON.parse(raw);
+    if (!record || typeof record.savedAt !== "number" || Date.now() - record.savedAt > STORAGE_TTL_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return record.value;
+  } catch (e) {
+    return null;
+  }
+}
+function saveStored(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), value }));
+  } catch (e) { /* 保存されないだけ */ }
+}
+
+let currentLang = loadStored(STORAGE_KEYS.lang);
+if (!LANGUAGES.some(l => l.code === currentLang)) currentLang = "en";
+let currentService = loadStored(STORAGE_KEYS.service);
+if (!SERVICES.includes(currentService)) currentService = null;
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+function yen(n) { return "¥" + n.toLocaleString("en-US"); }
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
+}
+
+// 料理名「Unaju — Grilled Eel over Rice…」を、名前（大）と説明（小）の2段に組む（見た目だけ）。
+// 区切りの「 — 」は画面には出さず、読み上げとコピーでは元の文字列のまま読めるように残す。
+// afterMain は名前のすぐ右に置くもの（数量限定バッジ）
+function renderName(name, afterMain = "") {
+  const m = /^(.+?)(\s*—\s*)(.+)$/.exec(name);
+  if (!m) return `<span class="name-main">${esc(name)}${afterMain}</span>`;
+  return `<span class="name-main">${esc(m[1])}${afterMain}</span>` +
+    `<span class="vh">${esc(m[2])}</span><span class="name-gloss">${esc(m[3])}</span>`;
+}
+
+function t() { return UI_TEXT[currentLang]; }
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+// 選択が必要なオプションを持つ商品は [追加] → ボトムシート、持たない商品は行に数量ステッパー
+function needsOptionSheet(p) { return p.optionGroups.length > 0; }
+
+// variant ID → { product, variant }
+const VARIANT_MAP = new Map();
+PRODUCTS.forEach(p => p.variants.forEach(v => VARIANT_MAP.set(v.id, { product: p, variant: v })));
+
+// 選択肢を返す。数を選ぶオプション（type:"count"：グラス数など）は、値（"1"〜"20"）を
+// 選択肢と同じ形にして返す（価格 0、店員画面の略号は「3杯」）。成り立たない値なら undefined
+function choiceOf(group, choiceId) {
+  const grp = OPTION_GROUPS[group];
+  if (grp.type === "count") {
+    if (!/^[1-9][0-9]*$/.test(choiceId)) return undefined;
+    const n = Number(choiceId);
+    if (n < grp.min || n > grp.max) return undefined;
+    const label = {};
+    LANGUAGES.forEach(l => { label[l.code] = String(n); });
+    return { id: choiceId, label, slipAbbr: n + grp.slipUnit, price: 0 };
+  }
+  return grp.choices.find(c => c.id === choiceId);
+}
+
+// コースのメイン変更の選択肢が表示させるオプショングループ
+// （inheritFrom の商品の optionGroups をそのまま引き継ぐ。変更なしは extraGroups）
+function choiceGroups(choice) {
+  if (choice.inheritFrom) return PRODUCTS.find(p => p.id === choice.inheritFrom).optionGroups;
+  return choice.extraGroups || [];
+}
+
+// その選択状態で表示する（＝選ぶ必要がある）オプショングループを上から順に返す。
+// コースのメイン変更のように、選んだ選択肢がさらにグループを出す場合はその直後に並べる（nested: true）
+function activeGroupEntries(product, selections) {
+  const entries = [];
+  product.optionGroups.forEach(g => {
+    entries.push({ group: g, nested: false });
+    const c = selections[g] !== undefined ? choiceOf(g, selections[g]) : null;
+    if (!c) return;
+    choiceGroups(c).forEach(child => {
+      if (!entries.some(e => e.group === child)) entries.push({ group: child, nested: true });
+    });
+  });
+  return entries;
+}
+
+function activeGroups(product, selections) {
+  return activeGroupEntries(product, selections).map(e => e.group);
+}
+
+// 表示中のグループのうち、まだ選ばれていないものに初期値（default）を入れる。
+// 初期値の選択でさらにグループが現れることがあるので、増えなくなるまで繰り返す
+function applyDefaults(product, selections) {
+  for (let changed = true; changed; ) {
+    changed = false;
+    activeGroups(product, selections).forEach(g => {
+      const def = OPTION_GROUPS[g].default;
+      if (def !== undefined && selections[g] === undefined) { selections[g] = def; changed = true; }
+    });
+  }
+}
+
+// 選択を変える。前の選択肢が出していたグループの選択は破棄する（別の選択肢に切り替えたら前の選択は残さない）
+function selectChoice(product, selections, group, choiceId) {
+  const prev = selections[group] !== undefined ? choiceOf(group, selections[group]) : null;
+  if (prev) {
+    choiceGroups(prev).forEach(child => {
+      if (!product.optionGroups.includes(child)) delete selections[child];
+    });
+  }
+  selections[group] = choiceId;
+  applyDefaults(product, selections);
+}
+
+function isDrink(product) { return CATEGORIES[product.category].kind === "drink"; }
+function lineIsDrink(line) { return isDrink(VARIANT_MAP.get(line.variantId).product); }
+
+// 1つの枠の中では、料理を先・ドリンクを後に並べる（それぞれはカートに入れた順）
+function foodThenDrinks(lines) {
+  return lines.filter(l => !lineIsDrink(l)).concat(lines.filter(lineIsDrink));
+}
+
+function productsForService(service) {
+  return PRODUCTS.filter(p => p.service === service);
+}
+
+// CATEGORIES の定義順に、その service で商品があるカテゴリだけを返す
+function categoriesForService(service) {
+  const products = productsForService(service);
+  return Object.keys(CATEGORIES).filter(key =>
+    CATEGORIES[key].service === service && products.some(p => p.category === key));
+}
+
+/* ============================================================
+   Rendering: language switcher
+   ============================================================ */
+function renderLangBars() {
+  const html = LANGUAGES.map(l =>
+    `<button type="button" class="lang-btn${l.code === currentLang ? " active" : ""}" data-lang="${l.code}" lang="${l.htmlLang}">${esc(l.label)}</button>`
+  ).join("");
+  ["lang-bar-entry", "lang-bar-menu", "lang-bar-order"].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = html;
+    el.querySelectorAll(".lang-btn").forEach(btn => {
+      btn.addEventListener("click", () => setLang(btn.dataset.lang));
+    });
+  });
+}
+
+function setLang(lang) {
+  if (lang === currentLang) return;
+  currentLang = lang;
+  saveStored(STORAGE_KEYS.lang, lang);
+  applyHtmlLang();
+  renderLangBars();
+  renderEntry();
+  if (currentService) renderMenu();
+  renderOrder();
+}
+
+// 中国語・日本語で漢字の字形が正しく出るよう、<html lang> を合わせる
+function applyHtmlLang() {
+  document.documentElement.lang = LANGUAGES.find(l => l.code === currentLang).htmlLang;
+}
+
+/* ============================================================
+   Rendering: entry screen
+   ============================================================ */
+function renderEntry() {
+  document.getElementById("entry-subtitle").textContent = t().menuSubtitle;
+  document.getElementById("entry-question").textContent = t().serviceQuestion;
+  document.getElementById("entry-dinein").textContent = t().dineIn;
+  document.getElementById("entry-takeout").textContent = t().takeout;
+  document.getElementById("entry-tax-note").textContent = t().taxIncluded;
+}
+
+function setService(service) {
+  currentService = service;
+  saveStored(STORAGE_KEYS.service, service);
+  renderMenu();
+  showScreen("menu-screen");
+  updateStickyOffsets();
+}
+
+/* ============================================================
+   Rendering: menu screen
+   ============================================================ */
+function renderMenu() {
+  document.getElementById("header-subtitle").textContent = t().menuSubtitle;
+  document.getElementById("menu-disclaimer").textContent = t().allergyDisclaimer;
+  document.getElementById("menu-tax-note").textContent = t().taxIncluded;
+  renderServiceSwitch();
+
+  const catKeys = categoriesForService(currentService);
+  const products = productsForService(currentService);
+
+  const nav = document.getElementById("category-nav");
+  nav.innerHTML = catKeys.map(key =>
+    `<button type="button" data-cat="${key}" data-kind="${CATEGORIES[key].kind}">${esc(CATEGORIES[key].name[currentLang])}</button>`
+  ).join("");
+  nav.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      setActiveNav(btn.dataset.cat);
+      document.getElementById("cat-" + btn.dataset.cat).scrollIntoView({ behavior: "smooth" });
+    });
+  });
+
+  document.getElementById("menu-list").innerHTML = catKeys.map(key => `
+    <section class="category-section" id="cat-${key}" data-kind="${CATEGORIES[key].kind}">
+      <div class="category-bar">${esc(CATEGORIES[key].name[currentLang])}</div>
+      ${renderStopWarning(CATEGORIES[key].stop)}
+      ${products.filter(p => p.category === key).map(renderProductCard).join("")}
+    </section>
+  `).join("");
+
+  setActiveNav(catKeys[0]);
+  setupNavObserver();
+  updateCartBar();
+  updateStopWarnings();
+}
+
+function renderServiceSwitch() {
+  const el = document.getElementById("service-switch");
+  const label = { dinein: t().dineInBand, takeout: t().takeoutBand };
+  el.innerHTML = SERVICES.map(s =>
+    `<button type="button" data-service="${s}" class="${s === currentService ? "active" : ""}"` +
+    ` aria-pressed="${s === currentService}">${esc(label[s])}</button>`
+  ).join("");
+  el.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.service === currentService) return;
+      setService(btn.dataset.service);
+    });
+  });
+}
+
+function renderProductCard(p) {
+  const name = p.name[currentLang];
+  const isCourse = p.category === "course";
+  const infoLabel = isCourse ? t().courseContents : t().included;
+  return `
+    <article class="food-card" data-id="${p.id}">
+      ${p.image ? `<img class="food-image" src="images/${esc(p.image)}" loading="lazy" decoding="async" alt="${esc(name)}">` : ""}
+      <div class="food-name">${renderName(name, renderLabels(p))}</div>
+      ${p.desc ? `<div class="food-desc">${esc(p.desc[currentLang])}</div>` : ""}
+      ${renderAllergens(p)}
+      ${p.included ? `<div class="food-included"><span class="info-label">${esc(infoLabel + t().labelSep)}</span>${esc(p.included[currentLang])}</div>` : ""}
+      <div class="variant-list">
+        ${isCourse ? renderCourseRow(p) : p.variants.map(v => renderVariantRow(p, v)).join("")}
+      </div>
+    </article>
+  `;
+}
+
+// アレルゲンが空の商品も空欄にせず「店員にお尋ねください」を必ず出す
+function renderAllergens(p) {
+  if (!p.allergens.length) {
+    return `<div class="food-allergy ask">${esc(t().allergyAskStaff)}</div>`;
+  }
+  const names = p.allergens.map(a => ALLERGENS[a][currentLang]).join(t().listSep);
+  return `<div class="food-allergy"><span class="info-label">${esc(t().allergyLabel + t().labelSep)}</span>${esc(names)}</div>`;
+}
+
+function renderVariantRow(p, v) {
+  const count = variantCount(v.id);
+  const control = needsOptionSheet(p)
+    ? `<button type="button" class="row-btn" data-open-sheet="${v.id}">${esc(t().add)}</button>
+       ${renderInCart(v.id, count)}`
+    : `<div class="stepper" data-variant="${v.id}">
+         <button type="button" class="stepper-minus" data-variant="${v.id}" aria-label="−">−</button>
+         <span class="stepper-value">${count}</span>
+         <button type="button" class="stepper-plus" data-variant="${v.id}" aria-label="＋">＋</button>
+       </div>`;
+  return `
+    <div class="variant-row${v.size ? "" : " no-size"}">
+      ${v.size ? `<span class="variant-size">${esc(v.size[currentLang])}</span>` : ""}
+      <span class="variant-price">${yen(v.price)}</span>
+      <div class="variant-control">${control}</div>
+    </div>
+  `;
+}
+
+// コースはサイズ行を持たず、価格と [選ぶ] だけ。選択はすべてシート内で行う
+function renderCourseRow(p) {
+  const v = p.variants[0];
+  return `
+    <div class="variant-row no-size">
+      <span class="variant-price">${yen(v.price)}</span>
+      <div class="variant-control">
+        <button type="button" class="row-btn" data-open-sheet="${v.id}">${esc(t().choose)}</button>
+        ${renderInCart(v.id, variantCount(v.id))}
+      </div>
+    </div>
+  `;
+}
+
+// 「カートに 2」：その variant の全ての行の数量の合計
+function renderInCart(variantId, count) {
+  return `<span class="in-cart" data-in-cart="${variantId}"${count ? "" : " hidden"}>${esc(t().inCart)} ${count}</span>`;
+}
+
+// 行の再描画はせず、数だけ書き換える（スクロール位置を動かさないため）
+function refreshRowCounts() {
+  document.querySelectorAll("[data-in-cart]").forEach(el => {
+    const n = variantCount(el.dataset.inCart);
+    el.textContent = `${t().inCart} ${n}`;
+    el.hidden = n === 0;
+  });
+  document.querySelectorAll(".stepper[data-variant]").forEach(el => {
+    el.querySelector(".stepper-value").textContent = variantCount(el.dataset.variant);
+  });
+}
+
+// メニュー一覧のボタンはまとめて1か所で受ける（再描画しても付け直し不要）
+document.getElementById("menu-list").addEventListener("click", e => {
+  const openBtn = e.target.closest("[data-open-sheet]");
+  if (openBtn) { openSheet(openBtn.dataset.openSheet); return; }
+  const plus = e.target.closest(".stepper-plus");
+  if (plus) { addToCart(plus.dataset.variant, {}, 1); return; }
+  const minus = e.target.closest(".stepper-minus");
+  if (minus) { changeQty(cartKey(minus.dataset.variant, {}), -1); }
+});
+
+/* ============================================================
+   Cart
+   ============================================================ */
+// カートの1行 = variant ＋ 選んだオプションの組み合わせ。
+// 商品名・価格は持たず、表示のたびに menu-data.js から引き直す
+// cart: [{ key, variantId, selections: { group: choiceId }, qty }]
+let cart = [];
+
+function cartKey(variantId, selections) {
+  const opts = Object.keys(selections).sort()
+    .map(g => g + ":" + selections[g]).join("|");
+  return variantId + "|" + opts;
+}
+
+function addToCart(variantId, selections, qty) {
+  const key = cartKey(variantId, selections);
+  const line = cart.find(l => l.key === key);
+  if (line) line.qty += qty;
+  else cart.push({ key, variantId, selections: { ...selections }, qty });
+  onCartChanged();
+  return key;
+}
+
+function changeQty(key, delta) {
+  const line = cart.find(l => l.key === key);
+  if (!line) return;
+  line.qty += delta;
+  if (line.qty <= 0) cart = cart.filter(l => l !== line);
+  onCartChanged();
+}
+
+// 1個あたりの価格 = variant の価格 ＋ 有料オプション
+function unitPrice(variantId, selections) {
+  const { variant } = VARIANT_MAP.get(variantId);
+  return variant.price + Object.keys(selections)
+    .reduce((sum, g) => sum + choiceOf(g, selections[g]).price, 0);
+}
+
+function variantCount(variantId) {
+  return cart.filter(l => l.variantId === variantId).reduce((n, l) => n + l.qty, 0);
+}
+
+/* ---- 保存と読み込み ----
+   保存するのは variant の ID・選んだオプション・数量だけ。商品名・価格は保存せず、読み込み時に menu-data.js から引き直す
+   （価格を更新したあとに古い価格が出ない）。menu-data.js に存在しなくなった variant・オプションを含む行は黙って捨てる */
+function saveCart() {
+  saveStored(STORAGE_KEYS.cart, cart.map(l => ({ variantId: l.variantId, selections: l.selections, qty: l.qty })));
+  saveStored(STORAGE_KEYS.timing, serveTiming);
+  // 言語・店内/持ち帰りも、最後に操作した時刻から3時間で揃って切れるよう保存し直す
+  saveStored(STORAGE_KEYS.lang, currentLang);
+  if (currentService) saveStored(STORAGE_KEYS.service, currentService);
+}
+
+const own = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
+// 保存された1行を検査し、いまの menu-data.js で成り立つものだけを返す（成り立たなければ null）
+function restoreLine(item) {
+  if (!item || typeof item !== "object") return null;
+  const { variantId, selections, qty } = item;
+  if (typeof variantId !== "string" || !VARIANT_MAP.has(variantId)) return null;
+  if (!Number.isInteger(qty) || qty < 1 || qty > 999) return null;
+  if (!selections || typeof selections !== "object" || Array.isArray(selections)) return null;
+  for (const g of Object.keys(selections)) {
+    if (!own(OPTION_GROUPS, g) || typeof selections[g] !== "string" || !choiceOf(g, selections[g])) return null;
+  }
+  const { product } = VARIANT_MAP.get(variantId);
+  const groups = activeGroups(product, selections);
+  if (Object.keys(selections).some(g => !groups.includes(g))) return null;
+  if (groups.some(g => OPTION_GROUPS[g].required && selections[g] === undefined)) return null;
+  return { variantId, selections: { ...selections }, qty };
+}
+
+function loadCart() {
+  const items = loadStored(STORAGE_KEYS.cart);
+  const restored = [];
+  if (!Array.isArray(items)) return restored;
+  items.forEach(item => {
+    const line = restoreLine(item);
+    if (!line) return;
+    const key = cartKey(line.variantId, line.selections);
+    const same = restored.find(l => l.key === key);
+    if (same) same.qty += line.qty;
+    else restored.push({ key, ...line });
+  });
+  return restored;
+}
+
+// 別のタブ（QR を読み直して開いたタブなど）でカートが変わったら、こちらも合わせる
+window.addEventListener("storage", e => {
+  if (e.key !== null && e.key !== STORAGE_KEYS.cart) return;
+  cart = loadCart();
+  serveTiming = loadTiming();
+  updateCartBar();
+  refreshRowCounts();
+  if (document.getElementById("order-screen").classList.contains("active")) renderOrder();
+  if (document.getElementById("staff-screen").classList.contains("active")) renderStaff();
+});
+
+/* ---- ドリンクを持ってくるタイミング（ドリンクがあるときだけ、注文確認で必ず選ぶ） ---- */
+const TIMINGS = [{ value: "first", textKey: "timingFirst" }, { value: "with", textKey: "timingWith" }];
+let serveTiming = null; // "first" | "with" | null
+
+function cartHasDrinks() { return cart.some(lineIsDrink); }
+
+function loadTiming() {
+  const v = loadStored(STORAGE_KEYS.timing);
+  return TIMINGS.some(x => x.value === v) && cartHasDrinks() ? v : null;
+}
+
+function onCartChanged() {
+  if (!cartHasDrinks()) serveTiming = null;
+  saveCart();
+  updateCartBar();
+  refreshRowCounts();
+  if (document.getElementById("order-screen").classList.contains("active")) renderOrder();
+}
+
+function removeLine(key) {
+  cart = cart.filter(l => l.key !== key);
+  onCartChanged();
+}
+
+function lineService(line) {
+  return VARIANT_MAP.get(line.variantId).product.service;
+}
+
+// 選んだオプションを、シートで表示した順（コースは メイン変更 → 変更先のオプション）で返す
+function lineGroups(line) {
+  const { product } = VARIANT_MAP.get(line.variantId);
+  return activeGroups(product, line.selections).filter(g => line.selections[g] !== undefined);
+}
+
+function lineTotal(line) {
+  return unitPrice(line.variantId, line.selections) * line.qty;
+}
+
+// 数が増えたときだけ、カートバーの数（落款）を判を押すように動かす（見た目だけ。最初の表示では動かさない）
+let shownCartCount = null;
+
+function updateCartBar() {
+  document.getElementById("view-order-label").textContent = t().viewOrder;
+  const count = cart.reduce((n, l) => n + l.qty, 0);
+  const countEl = document.getElementById("cart-count");
+  countEl.textContent = count;
+  if (shownCartCount !== null && count > shownCartCount) replayClass(countEl, "stamped");
+  shownCartCount = count;
+  document.getElementById("view-order-btn").classList.toggle("is-empty", count === 0);
+  const total = cart.reduce((sum, l) => sum + unitPrice(l.variantId, l.selections) * l.qty, 0);
+  document.getElementById("cart-total").textContent = total ? yen(total) : "";
+}
+
+// CSS アニメーションを最初から流し直す
+function replayClass(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+
+/* ============================================================
+   Option bottom sheet
+   ============================================================ */
+// sheet: { variantId, selections, qty } | null
+let sheet = null;
+
+// シートに並べるオプショングループ（上から順）
+function sheetGroups(s) {
+  return activeGroups(VARIANT_MAP.get(s.variantId).product, s.selections);
+}
+
+// 必須項目がすべて選ばれているか（ドリンク版の isReady と同じ考え方）
+function isSheetReady(s) {
+  return sheetGroups(s).every(g => !OPTION_GROUPS[g].required || s.selections[g] !== undefined);
+}
+
+function openSheet(variantId) {
+  const { product } = VARIANT_MAP.get(variantId);
+  const selections = {};
+  applyDefaults(product, selections);
+  sheet = { variantId, selections, qty: 1 };
+  renderSheet();
+  document.getElementById("sheet-overlay").hidden = false;
+  document.body.classList.add("sheet-open");
+  document.getElementById("sheet-body").scrollTop = 0;
+  document.getElementById("sheet-close").focus();
+}
+
+function closeSheet() {
+  sheet = null;
+  document.getElementById("sheet-overlay").hidden = true;
+  document.body.classList.remove("sheet-open");
+}
+
+function renderSheet() {
+  const { product, variant } = VARIANT_MAP.get(sheet.variantId);
+  document.getElementById("sheet-title").innerHTML = renderName(product.name[currentLang]);
+  document.getElementById("sheet-subtitle").innerHTML =
+    (variant.size ? `${esc(variant.size[currentLang])} · ` : "") + `<span class="price">${yen(variant.price)}</span>`;
+  document.getElementById("sheet-close").setAttribute("aria-label", t().close);
+  const sheetStop = document.getElementById("sheet-stop-warning");
+  sheetStop.dataset.stop = CATEGORIES[product.category].stop;
+  sheetStop.textContent = "⚠ " + t().orderStopWarning;
+  updateStopWarnings();
+  document.getElementById("sheet-total-label").textContent = t().total;
+  document.getElementById("sheet-qty-label").textContent = t().quantity;
+  // 本数とグラス数を聞くドリンクは、数量＝本数（清酒は徳利の数）。
+  // 本数（徳利数）→ グラス数（お猪口数）の順に並べるため、数量はシートの一番上に出し、下の数量欄は隠す
+  document.querySelector(".sheet-qty").hidden = Boolean(product.vessel);
+  const containerSection = product.vessel ? `
+      <section class="sheet-group">
+        <div class="sheet-group-label">${esc(VESSELS[product.vessel].containerLabel[currentLang])}</div>
+        <div class="stepper">
+          <button type="button" data-sheet-qty="-1" aria-label="−">−</button>
+          <span class="stepper-value">${sheet.qty}</span>
+          <button type="button" data-sheet-qty="1" aria-label="＋">＋</button>
+        </div>
+      </section>` : "";
+
+  const body = document.getElementById("sheet-body");
+  const scrollTop = body.scrollTop;
+  const { product: sheetProduct } = VARIANT_MAP.get(sheet.variantId);
+  body.innerHTML = containerSection + activeGroupEntries(sheetProduct, sheet.selections).map(({ group: g, nested }) => {
+    const grp = OPTION_GROUPS[g];
+    const selected = sheet.selections[g];
+    const label = `
+        <div class="sheet-group-label">
+          ${esc(grp.label[currentLang])}
+          ${selected === undefined ? `<span class="sheet-required">${esc(t().selectRequired)}</span>` : ""}
+        </div>`;
+    // 数を選ぶオプション（グラス数・お猪口数）は 0 から始めて、1 以上にするまで未選択
+    if (grp.type === "count") {
+      return `
+      <section class="sheet-group${nested ? " nested" : ""}">
+        ${label}
+        <div class="stepper">
+          <button type="button" data-count-group="${g}" data-delta="-1" aria-label="−">−</button>
+          <span class="stepper-value">${selected === undefined ? 0 : selected}</span>
+          <button type="button" data-count-group="${g}" data-delta="1" aria-label="＋">＋</button>
+        </div>
+      </section>
+    `;
+    }
+    return `
+      <section class="sheet-group${nested ? " nested" : ""}">
+        ${label}
+        <div class="style-options" role="radiogroup">
+          ${grp.choices.map(c => `
+            <button type="button" class="style-option${c.id === selected ? " selected" : ""}" role="radio"
+              aria-checked="${c.id === selected}" data-group="${g}" data-choice="${c.id}">${esc(c.label[currentLang])}</button>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }).join("");
+  body.scrollTop = scrollTop;
+  updateSheetFooter();
+}
+
+function updateSheetFooter() {
+  const ready = isSheetReady(sheet);
+  document.getElementById("sheet-qty").textContent = sheet.qty;
+  document.getElementById("sheet-total").textContent = yen(unitPrice(sheet.variantId, sheet.selections) * sheet.qty);
+  const addBtn = document.getElementById("sheet-add-btn");
+  addBtn.textContent = t().addToOrder;
+  addBtn.disabled = !ready;
+}
+
+function changeSheetQty(delta) {
+  sheet.qty = Math.min(20, Math.max(1, sheet.qty + delta));
+}
+
+document.getElementById("sheet-body").addEventListener("click", e => {
+  const qtyBtn = e.target.closest("[data-sheet-qty]");
+  if (qtyBtn && sheet) {
+    changeSheetQty(Number(qtyBtn.dataset.sheetQty));
+    renderSheet();
+    return;
+  }
+  const countBtn = e.target.closest("[data-count-group]");
+  if (countBtn && sheet) {
+    const g = countBtn.dataset.countGroup;
+    const grp = OPTION_GROUPS[g];
+    const now = sheet.selections[g] === undefined ? 0 : Number(sheet.selections[g]);
+    const next = Math.min(grp.max, Math.max(0, now + Number(countBtn.dataset.delta)));
+    if (next < grp.min) delete sheet.selections[g];
+    else sheet.selections[g] = String(next);
+    renderSheet();
+    return;
+  }
+  const btn = e.target.closest(".style-option");
+  if (!btn || !sheet) return;
+  const { product } = VARIANT_MAP.get(sheet.variantId);
+  selectChoice(product, sheet.selections, btn.dataset.group, btn.dataset.choice);
+  renderSheet();
+  // 選んだ選択肢に付く項目（コースの変更先のオプション）が隠れていたら、最後の項目まで見えるようにスクロールする
+  const children = choiceGroups(choiceOf(btn.dataset.group, btn.dataset.choice));
+  if (children.length) {
+    const body = document.getElementById("sheet-body");
+    const last = body.querySelector(`.style-option[data-group="${children[children.length - 1]}"]`);
+    if (last) {
+      // シートの中だけをスクロールする（ページ全体は動かさない）
+      const overflow = last.closest(".sheet-group").getBoundingClientRect().bottom - body.getBoundingClientRect().bottom;
+      if (overflow > 0) body.scrollTo({ top: body.scrollTop + overflow + 8, behavior: "smooth" });
+    }
+  }
+});
+
+document.getElementById("sheet-qty-minus").addEventListener("click", () => {
+  changeSheetQty(-1);
+  updateSheetFooter();
+});
+document.getElementById("sheet-qty-plus").addEventListener("click", () => {
+  changeSheetQty(1);
+  updateSheetFooter();
+});
+
+document.getElementById("sheet-add-btn").addEventListener("click", () => {
+  if (!sheet || !isSheetReady(sheet)) return;
+  const { variantId, selections, qty } = sheet;
+  addToCart(variantId, selections, qty);
+  closeSheet();
+  showAddedToast(variantId, selections);
+});
+
+// シートの外（暗い部分）のタップ、✕、Esc で閉じる。このとき何も追加しない
+document.getElementById("sheet-overlay").addEventListener("click", e => {
+  if (e.target === e.currentTarget) closeSheet();
+});
+document.getElementById("sheet-close").addEventListener("click", closeSheet);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && sheet) closeSheet();
+});
+
+/* ============================================================
+   "Added" toast with "one more of the same"
+   ============================================================ */
+let toastTimer = null;
+let lastAdded = null;
+
+function showAddedToast(variantId, selections) {
+  lastAdded = { variantId, selections: { ...selections } };
+  const { product, variant } = VARIANT_MAP.get(variantId);
+  const name = product.name[currentLang] + (variant.size ? ` / ${variant.size[currentLang]}` : "");
+  document.getElementById("toast-text").textContent = `${t().added} — ${name}`;
+  document.getElementById("toast-again").textContent = t().addSameAgain;
+  const toast = document.getElementById("toast");
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 5000);
+}
+
+function hideToast() {
+  document.getElementById("toast").hidden = true;
+  lastAdded = null;
+}
+
+document.getElementById("toast-again").addEventListener("click", () => {
+  if (!lastAdded) return;
+  addToCart(lastAdded.variantId, lastAdded.selections, 1);
+  showAddedToast(lastAdded.variantId, lastAdded.selections);
+});
+
+/* ============================================================
+   Rendering: order (customer) screen
+   ============================================================ */
+// 店内と持ち帰りは別の枠に分ける（店内が先）。片方しかなければその枠だけ
+function renderOrder() {
+  document.getElementById("order-heading").textContent = t().yourOrder;
+  document.getElementById("order-back-btn").textContent = "← " + t().back;
+  document.getElementById("order-disclaimer").textContent = t().allergyDisclaimer;
+  const staffBtn = document.getElementById("show-staff-btn");
+  staffBtn.textContent = t().showToStaff;
+
+  const list = document.getElementById("order-list");
+  if (!cart.length) {
+    list.innerHTML = `<p class="empty-note">${esc(t().emptyOrder)}</p>`;
+    staffBtn.disabled = true;
+    return;
+  }
+  // ドリンクがあるときは、持ってくるタイミングを選ぶまで店員に見せられない
+  const needTiming = cartHasDrinks();
+  staffBtn.disabled = needTiming && serveTiming === null;
+
+  const bandLabel = { dinein: t().dineInBand, takeout: t().takeoutBand };
+  const frames = SERVICES
+    .map(s => ({ service: s, lines: foodThenDrinks(cart.filter(l => lineService(l) === s)) }))
+    .filter(f => f.lines.length);
+  const showSubtotals = frames.length > 1;
+  const grandTotal = cart.reduce((sum, l) => sum + lineTotal(l), 0);
+
+  list.innerHTML = frames.map(f => `
+    <section class="service-frame">
+      <div class="service-band ${f.service}">${esc(bandLabel[f.service])}</div>
+      <div class="service-frame-body">
+        ${f.lines.map(renderOrderLine).join("")}
+        ${showSubtotals ? `
+          <div class="frame-subtotal">
+            <span>${esc(t().subtotal)}</span>
+            <span>${yen(f.lines.reduce((sum, l) => sum + lineTotal(l), 0))}</span>
+          </div>` : ""}
+      </div>
+    </section>
+  `).join("") + (needTiming ? renderTimingBlock() : "") + `
+    <div class="order-total">
+      <span>${esc(t().total)}</span>
+      <span class="order-total-price">${yen(grandTotal)}</span>
+    </div>
+    <p class="tax-note">${esc(t().taxIncluded)}</p>
+  `;
+}
+
+function renderTimingBlock() {
+  return `
+    <div class="timing-block">
+      <div class="timing-heading">${esc(t().servingTimingHeading)}</div>
+      <div class="style-options" role="radiogroup">
+        ${TIMINGS.map(x => `
+          <button type="button" class="style-option${x.value === serveTiming ? " selected" : ""}" role="radio"
+            aria-checked="${x.value === serveTiming}" data-timing="${x.value}">${esc(t()[x.textKey])}</button>
+        `).join("")}
+      </div>
+      ${serveTiming === null ? `<div class="timing-required">${esc(t().timingRequired)}</div>` : ""}
+    </div>
+  `;
+}
+
+function renderOrderLine(line) {
+  const { product, variant } = VARIANT_MAP.get(line.variantId);
+  const options = lineGroups(line).map(g =>
+    OPTION_GROUPS[g].label[currentLang] + t().labelSep + choiceOf(g, line.selections[g]).label[currentLang]);
+  // 本数とグラス数を聞くドリンクは、数量＝本数（徳利数）なので、それも見出し付きで出す
+  if (product.vessel) options.unshift(VESSELS[product.vessel].containerLabel[currentLang] + t().labelSep + line.qty);
+  const key = esc(line.key);
+  return `
+    <div class="order-item">
+      <div class="order-name">${renderName(product.name[currentLang])}</div>
+      ${variant.size ? `<div class="order-size">${esc(variant.size[currentLang])}</div>` : ""}
+      ${options.length ? `<ul class="order-options">${options.map(o => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}
+      <div class="order-item-bottom">
+        <div class="qty-control">
+          <button type="button" class="qty-minus" data-key="${key}" aria-label="−">−</button>
+          <span class="qty-value">${line.qty}</span>
+          <button type="button" class="qty-plus" data-key="${key}" aria-label="＋">＋</button>
+          <button type="button" class="remove-btn" data-key="${key}" aria-label="${esc(t().remove)}">✕</button>
+        </div>
+        <div class="order-price">
+          <span class="order-unit">${yen(unitPrice(line.variantId, line.selections))} × ${line.qty}</span>
+          <span class="order-subtotal">${yen(lineTotal(line))}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+document.getElementById("order-list").addEventListener("click", e => {
+  const timingBtn = e.target.closest("[data-timing]");
+  if (timingBtn) {
+    serveTiming = timingBtn.dataset.timing;
+    saveCart();
+    renderOrder();
+    return;
+  }
+  const btn = e.target.closest("[data-key]");
+  if (!btn) return;
+  if (btn.classList.contains("qty-minus")) changeQty(btn.dataset.key, -1);
+  else if (btn.classList.contains("qty-plus")) changeQty(btn.dataset.key, 1);
+  else if (btn.classList.contains("remove-btn")) removeLine(btn.dataset.key);
+});
+
+// 注文確認から戻ったとき、メニューの元の位置に戻す
+let menuScrollY = 0;
+document.getElementById("view-order-btn").addEventListener("click", () => {
+  menuScrollY = window.scrollY;
+  hideToast();
+  renderOrder();
+  showScreen("order-screen");
+});
+document.getElementById("order-back-btn").addEventListener("click", () => {
+  showScreen("menu-screen");
+  updateStickyOffsets();
+  window.scrollTo(0, menuScrollY);
+});
+
+/* ============================================================
+   Rendering: staff screen
+   常に日本語・価格なし。言語切り替えの影響を受けない
+   ============================================================ */
+function renderStaff() {
+  document.getElementById("staff-back-btn").textContent = "← " + t().back;
+  document.getElementById("staff-heading").textContent = STAFF_TEXT.heading;
+
+  const list = document.getElementById("staff-list");
+  const bandLabel = { dinein: UI_TEXT.ja.dineInBand, takeout: UI_TEXT.ja.takeoutBand };
+  const frames = SERVICES
+    .map(s => ({ service: s, lines: cart.filter(l => lineService(l) === s) }))
+    .filter(f => f.lines.length);
+  const timing = TIMINGS.find(x => x.value === serveTiming);
+
+  const note = currentLang === "ja" ? UI_TEXT.ja.showToStaffNote : `${t().showToStaffNote} / ${UI_TEXT.ja.showToStaffNote}`;
+  list.innerHTML = frames.map(f => `
+    <section class="service-frame">
+      <div class="service-band ${f.service}">${esc(bandLabel[f.service])}</div>
+      <div class="service-frame-body">
+        ${staffLines(f.lines.filter(l => !lineIsDrink(l))).map(renderStaffLine).join("")}
+        ${f.lines.some(lineIsDrink) ? `
+          <div class="staff-drinks-heading">
+            <span>${esc(STAFF_TEXT.drinks)}</span>
+            ${timing ? `<span class="staff-timing">${esc(STAFF_TEXT.timingLabel)}：${esc(UI_TEXT.ja[timing.textKey])}</span>` : ""}
+          </div>
+          ${f.lines.filter(lineIsDrink).map(renderStaffDrinkLine).join("")}` : ""}
+      </div>
+    </section>
+  `).join("") + `<p class="staff-note">${esc(note)}</p>`;
+}
+
+// 伝票の書き方どおりの略号。slipAbbr が空の選択肢（紙袋不要など）は出さない
+function slipAbbrs(line, groups) {
+  return groups
+    .filter(g => line.selections[g] !== undefined)
+    .map(g => choiceOf(g, line.selections[g]).slipAbbr)
+    .filter(a => a !== "");
+}
+
+// 店員画面の略号の行。slipLines を持つ商品（コース・定食（肉））は料理ごとに行を分け、
+// 行の先頭に料理名を出す。それ以外は1行（料理名なし）
+function staffRows(line) {
+  const { product } = VARIANT_MAP.get(line.variantId);
+  if (!product.slipLines) return [{ label: null, abbrs: slipAbbrs(line, lineGroups(line)) }];
+  return product.slipLines.map(sl => {
+    if (sl.fromChoice) {
+      const choice = choiceOf(sl.fromChoice, line.selections[sl.fromChoice]);
+      return { label: choice.slipLine, abbrs: slipAbbrs(line, choiceGroups(choice)) };
+    }
+    return { label: sl.label, abbrs: slipAbbrs(line, sl.groups) };
+  });
+}
+
+function renderAbbrs(abbrs) {
+  return abbrs.map(a => `<span class="staff-abbr">${esc(a)}</span>`).join(" ");
+}
+
+function renderStaffLine(line) {
+  const { variant } = VARIANT_MAP.get(line.variantId);
+  const rows = staffRows(line);
+  let body;
+  if (rows.length === 1 && rows[0].label === null) {
+    body = rows[0].abbrs.length ? `<div class="staff-options">${renderAbbrs(rows[0].abbrs)}</div>` : "";
+  } else {
+    body = `<div class="staff-rows">${rows.map(r => `
+      <span class="staff-row-label">${esc(r.label)}</span>
+      <span class="staff-options">${renderAbbrs(r.abbrs)}</span>
+    `).join("")}</div>`;
+  }
+  return `
+    <div class="staff-item">
+      <div class="staff-name">${esc(variant.slipName)} ×${line.qty}</div>
+      ${body}
+    </div>
+  `;
+}
+
+// ドリンクはドリンク版と同じ書き方：「本数：2本 / グラス数：3杯 / 飲み方：熱燗」（見出し付き）。
+// 本数（徳利数）を聞くドリンクは数量＝本数なので、伝票名に「×」は付けず本数の見出しで出す
+function renderStaffDrinkLine(line) {
+  const { product, variant } = VARIANT_MAP.get(line.variantId);
+  const parts = [];
+  if (product.vessel) {
+    const v = VESSELS[product.vessel];
+    parts.push(`${v.slipContainerLabel}：${line.qty}${v.slipContainerUnit}`);
+  }
+  lineGroups(line).forEach(g => {
+    parts.push(`${OPTION_GROUPS[g].slipLabel}：${choiceOf(g, line.selections[g]).slipAbbr}`);
+  });
+  return `
+    <div class="staff-item">
+      <div class="staff-name">${esc(variant.slipName)}${product.vessel ? "" : ` ×${line.qty}`}</div>
+      ${parts.length ? `<div class="staff-options">${parts.map(esc).join(" / ")}</div>` : ""}
+    </div>
+  `;
+}
+
+// 有料オプション（きも吸い・紙袋）は、単独の商品（持ち帰り（その他）のきも吸い・紙袋）と
+// 合算して1行として数える（choice.countAs）。同じ内容の単独商品の行があればそこに足し、なければ末尾に足す
+function staffLines(lines) {
+  const out = lines.map(l => ({ key: l.key, variantId: l.variantId, selections: l.selections, qty: l.qty }));
+  lines.forEach(l => Object.keys(l.selections).forEach(g => {
+    const target = choiceOf(g, l.selections[g]).countAs;
+    if (!target) return;
+    const key = cartKey(target.variant, target.selections);
+    const hit = out.find(o => o.key === key);
+    if (hit) hit.qty += l.qty;
+    else out.push({ key, variantId: target.variant, selections: target.selections, qty: l.qty });
+  }));
+  return out;
+}
+
+document.getElementById("show-staff-btn").addEventListener("click", () => {
+  if (!cart.length || (cartHasDrinks() && serveTiming === null)) return;
+  renderStaff();
+  showScreen("staff-screen");
+});
+document.getElementById("staff-back-btn").addEventListener("click", () => {
+  renderOrder();
+  showScreen("order-screen");
+});
+
+/* ============================================================
+   数量限定バッジ（仕様書 1-5・4）
+   商品名の右に小さく出す。値段の一部に見えないよう、価格の近くには置かない
+   ============================================================ */
+function renderLabels(p) {
+  return p.labels.map(l => `<span class="label-badge">${esc(LABELS[l][currentLang])}</span>`).join("");
+}
+
+/* ============================================================
+   オーダーストップ（仕様書 5）
+   客のスマホの時計を使うので、時刻がずれている可能性がある。注文不可にはせず、
+   警告帯を出すだけにしてボタンは押せるままにする（最終判断は店員）
+   ============================================================ */
+function toMinutes(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+// 注文を受け付ける時間帯（この外なら警告）。ストップ時刻ちょうどまでは受付とする
+function orderWindows(stop) {
+  const L = SERVICE_HOURS.lunch, D = SERVICE_HOURS.dinner;
+  if (stop === "course") return [[L.open, L.stopCourse], [D.open, D.stopCourse]];
+  if (stop === "drink") return [[L.open, L.stopDrink], [D.open, D.stopDrink]];
+  // 持ち帰りは昼のラストオーダー・昼休みを適用せず、昼の開店から夜の料理のストップまで通しで受け付ける
+  if (stop === "takeout") return [[L.open, D.stopFood]];
+  return [[L.open, L.stopFood], [D.open, D.stopFood]];
+}
+
+function isPastOrderStop(stop, now = new Date()) {
+  const m = now.getHours() * 60 + now.getMinutes();
+  return !orderWindows(stop).some(([from, to]) => m >= toMinutes(from) && m <= toMinutes(to));
+}
+
+function renderStopWarning(stop) {
+  return `<div class="stop-warning" data-stop="${stop}" role="note" hidden>⚠ ${esc(t().orderStopWarning)}</div>`;
+}
+
+// 時刻が変わったら出し直す（画面を開いたまま時刻をまたぐことがあるため）
+function updateStopWarnings() {
+  const now = new Date();
+  document.querySelectorAll(".stop-warning[data-stop]").forEach(el => {
+    el.hidden = !isPastOrderStop(el.dataset.stop, now);
+  });
+}
+setInterval(updateStopWarnings, 30 * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) updateStopWarnings(); });
+window.addEventListener("pageshow", updateStopWarnings);
+
+/* ============================================================
+   Sticky offsets & category highlight
+   ============================================================ */
+// ヘッダーは言語・折り返しで高さが変わるので、実高さを測って CSS 変数に流し込む
+let stickyOffset = 0;
+function updateStickyOffsets() {
+  const headerH = document.getElementById("site-header").offsetHeight;
+  const navH = document.getElementById("category-nav").offsetHeight;
+  const root = document.documentElement.style;
+  root.setProperty("--header-h", headerH + "px");
+  root.setProperty("--nav-h", navH + "px");
+  if (headerH + navH !== stickyOffset) {
+    stickyOffset = headerH + navH;
+    setupNavObserver();
+  }
+}
+
+if ("ResizeObserver" in window) {
+  const ro = new ResizeObserver(updateStickyOffsets);
+  ro.observe(document.getElementById("site-header"));
+  ro.observe(document.getElementById("category-nav"));
+}
+window.addEventListener("resize", updateStickyOffsets);
+
+function setActiveNav(key) {
+  const nav = document.getElementById("category-nav");
+  let activeBtn = null;
+  nav.querySelectorAll("button").forEach(btn => {
+    const on = btn.dataset.cat === key;
+    btn.classList.toggle("active", on);
+    if (on) activeBtn = btn;
+  });
+  // ハイライトしたボタンがナビの横スクロールの外に出ないようにする
+  if (activeBtn) {
+    const left = activeBtn.offsetLeft - (nav.clientWidth - activeBtn.offsetWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }
+}
+
+// ヘッダー＋ナビの直下から画面の上半分までの帯に入っているセクションのうち、
+// いちばん上のものを「表示中」とする
+let navObserver = null;
+function setupNavObserver() {
+  if (navObserver) navObserver.disconnect();
+  if (!("IntersectionObserver" in window)) return;
+  const sections = Array.from(document.querySelectorAll(".category-section"));
+  if (!sections.length) return;
+  const visible = new Set();
+  navObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => e.isIntersecting ? visible.add(e.target) : visible.delete(e.target));
+    if (atPageBottom()) return;
+    const top = sections.find(s => visible.has(s));
+    if (top) setActiveNav(top.id.slice("cat-".length));
+  }, { rootMargin: `-${stickyOffset + 1}px 0px -55% 0px` });
+  sections.forEach(s => navObserver.observe(s));
+}
+
+// 最後のカテゴリが短いと帯の上端まで来ないので、最下部までスクロールしたら最後をハイライトする
+function atPageBottom() {
+  return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+}
+window.addEventListener("scroll", () => {
+  if (!document.getElementById("menu-screen").classList.contains("active")) return;
+  if (atPageBottom()) {
+    const sections = document.querySelectorAll(".category-section");
+    if (sections.length) setActiveNav(sections[sections.length - 1].id.slice("cat-".length));
+  }
+}, { passive: true });
+
+/* ============================================================
+   入口の暖簾（見た目だけ）
+   選んだら入口を重ねたまま（.parting）暖簾を左右に分け、下で表示済みのメニューを見せる。
+   動きを減らす設定の端末では、今までどおりすぐ切り替える
+   ============================================================ */
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function enterThroughNoren(service) {
+  const entry = document.getElementById("entry-screen");
+  if (reduceMotion.matches) { setService(service); return; }
+  entry.classList.add("parting");
+  setService(service);
+  setTimeout(() => entry.classList.remove("parting"), 950);
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+document.getElementById("entry-dinein").addEventListener("click", () => enterThroughNoren("dinein"));
+document.getElementById("entry-takeout").addEventListener("click", () => enterThroughNoren("takeout"));
+
+/* ============================================================
+   Init
+   ============================================================ */
+cart = loadCart();
+serveTiming = loadTiming();
+applyHtmlLang();
+renderLangBars();
+renderEntry();
+if (currentService) {
+  renderMenu();
+  showScreen("menu-screen");
+  updateStickyOffsets();
+} else {
+  showScreen("entry-screen");
+}
+</script>
+</body>
+</html>
